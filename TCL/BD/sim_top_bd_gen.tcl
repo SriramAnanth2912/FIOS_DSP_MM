@@ -30,7 +30,7 @@ if { ![info exists use_ip] } {
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
-set scripts_vivado_version 2022.1
+set scripts_vivado_version 2025.1
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
@@ -133,12 +133,18 @@ set bCheckIPsPassed 1
 ##################################################################
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
-   set list_check_ips "\ 
-xilinx.com:ip:blk_mem_gen:8.4\
-xilinx.com:ip:proc_sys_reset:5.0\
-xilinx.com:ip:sim_clk_gen:1.0\
-"
 
+# Helper to get the latest VLNV for a given IP name
+proc get_latest_vlnv {ip_name} {
+   set def [get_ipdefs -filter "NAME == $ip_name"]
+   return [lindex [lsort -dictionary $def] end]
+}
+
+set list_check_ips [list \
+  [get_latest_vlnv sim_clk_gen] \
+  [get_latest_vlnv blk_mem_gen] \
+  [get_latest_vlnv proc_sys_reset] \
+]
    if { $use_ip } {
    
       lappend list_check_ips "user.org:user:MM_demo:1.0"

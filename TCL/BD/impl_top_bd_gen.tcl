@@ -30,7 +30,7 @@ if { ![info exists use_ip] } {
 ################################################################
 # Check if script is running in correct Vivado version.
 ################################################################
-set scripts_vivado_version 2022.1
+set scripts_vivado_version 2025.1
 set current_vivado_version [version -short]
 
 if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
@@ -133,14 +133,20 @@ set bCheckIPsPassed 1
 ##################################################################
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
-   set list_check_ips "\ 
-xilinx.com:ip:axi_bram_ctrl:4.1\
-xilinx.com:ip:blk_mem_gen:8.4\
-xilinx.com:ip:clk_wiz:6.0\
-xilinx.com:ip:proc_sys_reset:5.0\
-xilinx.com:ip:xlslice:1.0\
-xilinx.com:ip:zynq_ultra_ps_e:3.4\
-"
+# Helper to get the latest VLNV for a given IP name
+proc get_latest_vlnv {ip_name} {
+   set def [get_ipdefs -filter "NAME == $ip_name"]
+   return [lindex [lsort -dictionary $def] end]
+}
+
+set list_check_ips [list \
+  [get_latest_vlnv axi_bram_ctrl] \
+  [get_latest_vlnv blk_mem_gen] \
+  [get_latest_vlnv clk_wiz] \
+  [get_latest_vlnv proc_sys_reset] \
+  [get_latest_vlnv xlslice] \
+  [get_latest_vlnv zynq_ultra_ps_e] \
+]
 
    if { $use_ip } {
    
@@ -359,7 +365,8 @@ if { !$use_ip } {
  ] $xlslice_1
 
   # Create instance: zynq_ultra_ps_e_0, and set properties
-  set zynq_ultra_ps_e_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:zynq_ultra_ps_e:3.4 zynq_ultra_ps_e_0 ]
+set zynq_vlnv [get_ipdefs -filter {NAME == zynq_ultra_ps_e}]
+set zynq_ultra_ps_e_0 [ create_bd_cell -type ip -vlnv [lindex $zynq_vlnv 0] zynq_ultra_ps_e_0 ]
   set_property -dict [ list \
    CONFIG.PSU_BANK_0_IO_STANDARD {LVCMOS18} \
    CONFIG.PSU_BANK_1_IO_STANDARD {LVCMOS18} \
